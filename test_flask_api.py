@@ -18,24 +18,20 @@ class FlaskApiTests(unittest.TestCase):
         self.assertEqual(data.get("authenticated"), False)
 
     def test_02_login_and_auth_status(self):
-        # Invalid login
         res = self.client.post("/api/auth/login", json={"username": "wrong", "password": "bad"})
         self.assertEqual(res.status_code, 401)
 
-        # Valid login
         res = self.client.post("/api/auth/login", json={"username": "admin", "password": "hasamex2026"})
         self.assertEqual(res.status_code, 200)
         data = res.get_json()
         self.assertTrue(data.get("success"))
         self.assertTrue(data.get("authenticated"))
 
-        # Check status
         res = self.client.get("/api/auth/status")
         self.assertEqual(res.status_code, 200)
         self.assertTrue(res.get_json().get("authenticated"))
 
     def test_03_get_state(self):
-        # Login first
         self.client.post("/api/auth/login", json={"username": "admin", "password": "hasamex2026"})
 
         res = self.client.get("/api/state")
@@ -56,7 +52,6 @@ class FlaskApiTests(unittest.TestCase):
     def test_04_citation_lookup(self):
         self.client.post("/api/auth/login", json={"username": "admin", "password": "hasamex2026"})
 
-        # Test lookup for turn FR-04
         res = self.client.get("/api/citations/turn/FR-04")
         self.assertEqual(res.status_code, 200)
         data = res.get_json()

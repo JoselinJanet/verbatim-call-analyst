@@ -48,7 +48,6 @@ def generate_answer_cell(
     result = generate_json(_SYSTEM_PROMPT, prompt)
 
     if result is None:
-        # LLM failed to produce parseable JSON after retries.
         return AnswerCell(
             question_number=question.number,
             country=transcript.country,
@@ -67,8 +66,6 @@ def generate_answer_cell(
 
     verified_quotes, rejected_ids = verify_sentence_ids(raw_sentence_ids, lookup)
 
-    # If every proposed ID was rejected (hallucinated) but the model claimed
-    # "answered", downgrade to "partial" since we have no verified evidence.
     if not verified_quotes and status == "answered":
         status = "partial"
 

@@ -1,9 +1,4 @@
-"""
-Transcript Insight - Flask REST API Backend & Web Server
-Provides full REST endpoints for authentication, state, analysis pipeline,
-chat Q&A with BM25/LLM, citation lookups, and serves the modern Web UI.
-Run directly with: python app.py
-"""
+
 from functools import wraps
 from pathlib import Path
 import tempfile
@@ -32,20 +27,17 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = "verbatim-call-analyst-secret-key-production-local"
 CORS(app, supports_credentials=True)
 
-# In-memory runtime state
 _current_state: Optional[AppState] = None
 _bm25_index: Optional[BM25Index] = None
 _sentence_lookup: Optional[dict] = None
 
 
 def get_state(force_reload: bool = False) -> AppState:
-    """Retrieve or initialize the active AppState."""
     global _current_state, _bm25_index, _sentence_lookup
 
     if _current_state is None or force_reload:
         state = load_cache()
         if state is None:
-            # Fall back to running default pipeline
             state = run_pipeline(DEFAULT_GUIDE_PATH, DEFAULT_TRANSCRIPT_PATHS)
         _current_state = state
         _bm25_index = BM25Index(state.transcripts)
@@ -74,14 +66,10 @@ def login_required(f):
     return decorated_function
 
 
-# ---- Page Routes -----------------------------------------------------------
-
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
-# ---- Auth Endpoints --------------------------------------------------------
 
 @app.route("/api/auth/status", methods=["GET"])
 def auth_status():
@@ -120,8 +108,6 @@ def auth_logout():
     return jsonify({"success": True, "authenticated": False})
 
 
-# ---- State & Analysis Endpoints --------------------------------------------
-
 @app.route("/api/state", methods=["GET"])
 @login_required
 def api_state():
@@ -129,7 +115,6 @@ def api_state():
         state = get_state()
         countries = sorted(list({c.country for c in state.answer_grid}))
 
-        # Expert profiles summary
         experts = [
             {
                 "country": t.country,
@@ -215,8 +200,6 @@ def api_cache_clear():
         return jsonify({"error": f"Failed to clear cache: {str(e)}"}), 500
 
 
-# ---- Chat & Q&A Endpoints --------------------------------------------------
-
 @app.route("/api/chat/conversations", methods=["GET"])
 @login_required
 def get_conversations():
@@ -280,14 +263,11 @@ def chat_ask():
         conv = chat_store.new_conversation()
         conversations.append(conv)
 
-    # 1. Add user question to conversation
     chat_store.add_message(conv, "user", question)
 
-    # 2. Run retrieval & answering
     state, bm25_index, lookup = get_retrieval_components()
     result = answer_question(question, bm25_index, state.transcripts, lookup)
 
-    # 3. Format assistant answer
     if result.covered and result.citations:
         citation_str = ", ".join(f"[{q.country} {q.turn_id} @ {q.timestamp}]" for q in result.citations)
         answer_text = f"{result.answer}\n\n*Verified Sources:* {citation_str}"
@@ -305,8 +285,6 @@ def chat_ask():
         "conversation": conv,
     })
 
-
-# ---- Citation & Transcript Endpoints ---------------------------------------
 
 @app.route("/api/citations/turn/<turn_id>", methods=["GET"])
 @login_required
@@ -329,7 +307,6 @@ def get_citation_turn(turn_id):
     if not target_transcript or target_turn is None:
         return jsonify({"error": f"Turn '{turn_id}' not found."}), 404
 
-    # Extract context window (3 turns before, 3 turns after)
     turns = target_transcript.turns
     window_start = max(0, turn_index - 3)
     window_end = min(len(turns), turn_index + 4)
@@ -368,7 +345,6 @@ def get_transcripts():
 
 
 if __name__ == "__main__":
-    # Pre-warm state on start
     print("Pre-warming Transcript Insight pipeline / cache...")
     get_state()
     print("Transcript Insight ready. Serving on http://localhost:5000")

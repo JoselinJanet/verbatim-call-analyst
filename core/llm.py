@@ -61,7 +61,6 @@ def _extract_json(raw: str) -> Optional[dict]:
         return json.loads(raw)
     except json.JSONDecodeError:
         pass
-    # fallback: grab the first {...} block
     match = re.search(r"\{.*\}", raw, re.DOTALL)
     if match:
         try:
@@ -119,7 +118,6 @@ def generate_json(
             print(f"[llm] Attempt {attempt + 1}/{max_retries}: model did not return valid JSON, retrying...")
             print(f"[llm] Raw output was: {raw[:300]!r}")
 
-        # tighten the instruction and retry
         messages.append({"role": "assistant", "content": raw})
         messages.append({
             "role": "user",

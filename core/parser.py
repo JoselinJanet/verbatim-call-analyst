@@ -37,7 +37,6 @@ HEADER_ROLE_RE = re.compile(r"^Role:\s*(.+)$", re.IGNORECASE)
 HEADER_EXPERT_RE = re.compile(r"^Expert\s+\d+\s*[–-]\s*(.+)$", re.IGNORECASE)
 SPEAKER_LINE_RE = re.compile(r"^([^:]+):\s*(.+)$")
 
-# naive but adequate sentence splitter for short, clean interview sentences
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9])")
 
 
@@ -49,7 +48,6 @@ def parse_guide(path: Path) -> List[GuideQuestion]:
     """Extract numbered questions from the interview guide file."""
     text = Path(path).read_text(encoding="utf-8")
     questions = []
-    # matches lines like "1. How would you describe..."
     pattern = re.compile(r"^\s*(\d+)\.\s+(.*\S)\s*$", re.MULTILINE)
     for match in pattern.finditer(text):
         num = int(match.group(1))
@@ -70,7 +68,6 @@ def parse_transcript(path: Path) -> Transcript:
     country = None
 
     i = 0
-    # ---- parse header block (first few non-blank lines) ----
     while i < len(lines):
         if expert_name and expert_role and country:
             break
@@ -88,7 +85,6 @@ def parse_transcript(path: Path) -> Transcript:
         elif m_market:
             country = m_market.group(1).strip()
         else:
-            # header section ended (hit the first timestamp or dialogue)
             if TIMESTAMP_RE.match(line):
                 break
         i += 1
@@ -99,7 +95,6 @@ def parse_transcript(path: Path) -> Transcript:
     country_code = _country_code(country)
     call_label = Path(path).stem
 
-    # ---- parse timestamp/speaker blocks ----
     turns: List[Turn] = []
     turn_counter = 0
     n = len(lines)
@@ -114,7 +109,6 @@ def parse_transcript(path: Path) -> Transcript:
             continue
         timestamp = ts_match.group(1)
         i += 1
-        # collect following non-blank lines until next timestamp or EOF as the turn text
         text_parts = []
         speaker = None
         while i < n:
