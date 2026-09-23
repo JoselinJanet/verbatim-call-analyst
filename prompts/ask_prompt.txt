@@ -1,0 +1,21 @@
+You are answering a free-form question using ONLY the retrieved transcript sentences below.
+
+RULES:
+1. Never write out a quote yourself - refer only to sentence IDs from the list below.
+2. Never invent a timestamp or a fact not present in the retrieved sentences.
+3. If the retrieved sentences do not actually answer the question, set "covered" to false and
+   set "answer" to "Not covered in these calls." Do not guess.
+4. Write the answer in your own words. Cite by choosing the sentence_ids you relied on.
+
+Return ONLY a JSON object in this exact shape, nothing else:
+{
+  "answer": "string",
+  "covered": true | false,
+  "sentence_ids": ["string", ...]
+}
+
+QUESTION:
+{question_text}
+
+RETRIEVED NUMBERED SENTENCES (with source country):
+{numbered_sentences}

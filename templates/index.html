@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcript Insight | Verbatim Call Analyst</title>
+  <meta name="description" content="Source-linked executive research summary and verbatim evidence extraction across expert-call transcripts.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="theme-light">
+  <!-- Background Glow & Grid Overlay -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-grid-pattern"></div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- =========================================================================
+       1. AUTHENTICATION OVERLAY / SCREEN (Shown when logged out)
+       ========================================================================= -->
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-card glass-panel">
+      <div class="auth-header">
+        <div class="auth-icon-badge">
+          <i class="fa-solid fa-phone-volume"></i>
+        </div>
+        <h1>Transcript Insight</h1>
+        <p class="auth-subtitle">Verbatim Call Analyst & Evidence Matrix</p>
+      </div>
+
+      <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-username"><i class="fa-regular fa-user"></i> Username</label>
+          <input type="text" id="login-username" name="username" placeholder="Enter username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="login-password"><i class="fa-solid fa-lock"></i> Password</label>
+          <input type="password" id="login-password" name="password" placeholder="••••••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn btn-primary btn-block">
+          <span>Sign In to Workspace</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. MAIN APPLICATION WORKSPACE (Shown when authenticated)
+       ========================================================================= -->
+  <div id="app-workspace" class="app-workspace hidden">
+    
+    <!-- Top Navigation Header -->
+    <header class="top-nav glass-header">
+      <div class="nav-brand">
+        <div class="brand-logo">
+          <i class="fa-solid fa-phone-volume"></i>
+        </div>
+        <div class="brand-meta">
+          <span class="brand-title">Transcript Insight</span>
+          <span class="brand-tag">Verbatim Evidence Engine</span>
+        </div>
+      </div>
+
+      <!-- Dataset Status Badges -->
+      <div class="nav-metrics">
+        <div class="metric-pill" title="Total calls analyzed">
+          <i class="fa-solid fa-users"></i>
+          <span id="badge-expert-count">3 Experts</span>
+        </div>
+        <div class="metric-pill" title="Guide questions mapped">
+          <i class="fa-solid fa-list-check"></i>
+          <span id="badge-question-count">6 Questions</span>
+        </div>
+        <div class="metric-pill highlight" title="Verified verbatim grounding">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>100% Verbatim Grounded</span>
+        </div>
+      </div>
+
+      <!-- Actions & Profile -->
+      <div class="nav-actions">
+        <button id="btn-open-upload-modal" class="btn btn-secondary btn-sm" title="Upload custom guide or transcripts" onclick="openUploadModal()">
+          <i class="fa-solid fa-upload"></i>
+          <span>Uploads</span>
+        </button>
+        <button id="btn-regenerate" class="btn btn-secondary btn-sm" title="Re-run LLM pipeline ignoring cache" onclick="handleRegenerate()">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Regenerate</span>
+        </button>
+        <button id="btn-clear-cache" class="btn btn-secondary btn-sm" title="Clear cached JSON" onclick="handleClearCache()">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+        <div class="nav-divider"></div>
+        <div class="user-badge" id="user-display">
+          <i class="fa-solid fa-circle-user"></i>
+          <span id="nav-username">admin</span>
+        </div>
+        <button id="btn-logout" class="btn btn-ghost btn-sm" title="Log out" onclick="handleLogout()">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs Bar -->
+    <nav class="tabs-bar">
+      <div class="tabs-container">
+        <button class="tab-btn active" data-tab="tab-guide" onclick="switchTab('tab-guide')">
+          <i class="fa-solid fa-table-cells-large"></i>
+          <span>Guide Answers</span>
+          <span class="tab-indicator"></span>
+        </button>
+        <button class="tab-btn" data-tab="tab-themes" onclick="switchTab('tab-themes')">
+          <i class="fa-solid fa-compass"></i>
+          <span>Themes & Disagreements</span>
+          <span class="tab-indicator"></span>
+        </button>
+        <button class="tab-btn" data-tab="tab-ask" onclick="switchTab('tab-ask')">
+          <i class="fa-solid fa-comments"></i>
+          <span>Ask Analyst</span>
+          <span class="tab-indicator"></span>
+        </button>
+        <button class="tab-btn" data-tab="tab-citation" onclick="switchTab('tab-citation')">
+          <i class="fa-solid fa-quote-left"></i>
+          <span>Citation Inspector</span>
+          <span class="tab-indicator"></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="workspace-body">
+      
+      <!-- =====================================================================
+           TAB 1: GUIDE ANSWERS MATRIX
+           ===================================================================== -->
+      <section id="tab-guide" class="tab-view active">
+        <div class="view-header">
+          <div class="view-titles">
+            <h2>Interview Guide Answers</h2>
+            <p>Cross-expert matrix comparing responses to each guide question with verbatim sentence citations.</p>
+          </div>
+          <div class="view-controls">
+            <div class="search-input-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="guide-filter-input" placeholder="Filter questions or quotes..." oninput="filterGuideMatrix()">
+            </div>
+            <div class="filter-select-wrap">
+              <select id="country-filter" onchange="filterGuideMatrix()">
+                <option value="ALL">All Countries</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experts Header Bar -->
+        <div id="experts-header-bar" class="experts-header-bar">
+          <!-- Dynamically populated expert profile cards -->
+        </div>
+
+        <!-- Question Rows Matrix Container -->
+        <div id="guide-matrix-container" class="guide-matrix-container">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading Guide Answers Matrix...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 2: THEMES & DISAGREEMENTS
+           ===================================================================== -->
+      <section id="tab-themes" class="tab-view">
+        <div class="view-header">
+          <div class="view-titles">
+            <h2>Themes & Disagreements</h2>
+            <p>Cross-market consensus and points of strategic friction with linked verbatim quotes.</p>
+          </div>
+          <div class="synthesis-stats">
+            <div class="stat-badge themes-stat">
+              <i class="fa-solid fa-layer-group"></i>
+              <span id="theme-count-text">0 Themes</span>
+            </div>
+            <div class="stat-badge disagreements-stat">
+              <i class="fa-solid fa-bolt"></i>
+              <span id="disagreement-count-text">0 Disagreements</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="themes-layout-grid">
+          <!-- Common Themes Column -->
+          <div class="themes-column">
+            <div class="section-title-wrap">
+              <h3><i class="fa-solid fa-circle-check text-emerald"></i> Common Themes</h3>
+              <span class="section-subtitle">Multi-expert consensus points</span>
+            </div>
+            <div id="themes-list" class="cards-list">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading synthesized themes...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cross-Market Disagreements Column -->
+          <div class="disagreements-column">
+            <div class="section-title-wrap">
+              <h3><i class="fa-solid fa-scale-unbalanced text-amber"></i> Cross-Expert Disagreements</h3>
+              <span class="section-subtitle">Categorized differences in evidence</span>
+            </div>
+            <div id="disagreements-list" class="cards-list">
+              <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading disagreements...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 3: ASK (FREE-FORM CHAT WITH PERSISTENCE & CITATIONS)
+           ===================================================================== -->
+      <section id="tab-ask" class="tab-view">
+        <div class="chat-workspace">
+          
+          <!-- Chat Sidebar (Thread History) -->
+          <aside class="chat-sidebar glass-panel">
+            <div class="sidebar-header">
+              <button id="btn-new-chat" class="btn btn-primary btn-block" onclick="handleNewChat()">
+                <i class="fa-solid fa-plus"></i>
+                <span>New Chat</span>
+              </button>
+            </div>
+            <div class="sidebar-section-title">
+              <span>Saved Conversations</span>
+            </div>
+            <div id="chat-threads-list" class="chat-threads-list">
+              <!-- Dynamically populated conversation threads -->
+            </div>
+          </aside>
+
+          <!-- Chat Conversation Area -->
+          <div class="chat-main glass-panel">
+            <div class="chat-header">
+              <div class="chat-active-info">
+                <h3 id="chat-active-title">Conversation</h3>
+                <span class="chat-grounding-notice">
+                  <i class="fa-solid fa-shield-halved text-amber"></i> Answers strictly grounded in call transcripts.
+                </span>
+              </div>
+              <button class="btn btn-ghost btn-sm text-danger" title="Delete current thread" onclick="handleDeleteCurrentChat()">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="chat-messages-container" class="chat-messages-container">
+              <!-- Dynamically populated message bubbles -->
+            </div>
+
+            <!-- Chat Input Bar -->
+            <div class="chat-input-bar">
+              <form id="chat-form" onsubmit="handleSendQuestion(event)">
+                <div class="chat-input-wrapper">
+                  <input type="text" id="chat-query-input" placeholder="Ask anything about the transcripts (e.g., 'What are the main adoption barriers?')..." autocomplete="off" required>
+                  <button type="submit" id="btn-chat-send" class="btn btn-primary" title="Send question">
+                    <span>Ask</span>
+                    <i class="fa-solid fa-paper-plane"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 4: CITATION INSPECTOR (CONTEXT DRILLDOWN)
+           ===================================================================== -->
+      <section id="tab-citation" class="tab-view">
+        <div class="view-header">
+          <div class="view-titles">
+            <h2>Citation Context Inspector</h2>
+            <p>Examine any turn in verbatim conversational context with preceding and following speaker turns.</p>
+          </div>
+          <div class="citation-selector-wrap">
+            <label for="citation-turn-select"><i class="fa-solid fa-filter"></i> Jump to Turn:</label>
+            <select id="citation-turn-select" onchange="handleTurnSelectChange(this.value)">
+              <option value="">-- Choose a Turn ID --</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="citation-inspector-body" class="citation-inspector-body">
+          <div class="empty-selection-placeholder">
+            <div class="placeholder-icon">
+              <i class="fa-solid fa-quote-right"></i>
+            </div>
+            <h3>Select a Turn to Inspect</h3>
+            <p>Choose a turn from the dropdown above, or click any quote citation badge across the app to see it placed in the exact transcript conversation.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       3. CITATION SLIDE-OVER DRAWER (Context inspection without losing place)
+       ========================================================================= -->
+  <div id="citation-drawer" class="citation-drawer" aria-hidden="true">
+    <div class="drawer-backdrop" onclick="closeCitationDrawer()"></div>
+    <div class="drawer-panel glass-panel">
+      <div class="drawer-header">
+        <div class="drawer-titles">
+          <span class="drawer-eyebrow">VERBATIM CONTEXT</span>
+          <h3 id="drawer-turn-id">Turn Inspector</h3>
+        </div>
+        <button class="btn btn-ghost btn-icon" onclick="closeCitationDrawer()" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="drawer-meta-bar" id="drawer-meta-bar">
+        <!-- Call, Country, Speaker metadata -->
+      </div>
+
+      <div class="drawer-content" id="drawer-content">
+        <!-- Surrounding dialog turns -->
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn btn-secondary btn-block" onclick="jumpToFullInspectorFromDrawer()">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>Open Full Screen in Citation Inspector</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       4. UPLOAD MODAL (Custom Files / Pipeline Settings)
+       ========================================================================= -->
+  <div id="upload-modal" class="modal-backdrop hidden" onclick="handleModalBackdropClick(event)">
+    <div class="modal-card glass-panel" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-file-arrow-up text-amber"></i>
+          <h3>Upload Analysis Inputs</h3>
+        </div>
+        <button class="btn btn-ghost btn-icon" onclick="closeUploadModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc">
+          Defaults to the 3 clinical case transcripts and standard interview guide in <code>/data</code>. You can upload custom files to replace them.
+        </p>
+
+        <form id="upload-form" onsubmit="handleUploadSubmit(event)">
+          <div class="form-group">
+            <label for="guide-file-input">Interview Guide (.txt)</label>
+            <input type="file" id="guide-file-input" accept=".txt">
+            <span class="field-hint">Leave blank to use default <code>Interview_Guide.txt</code></span>
+          </div>
+
+          <div class="form-group">
+            <label for="transcript-files-input">Transcripts (.txt, multiple allowed)</label>
+            <input type="file" id="transcript-files-input" accept=".txt" multiple>
+            <span class="field-hint">Leave blank to use default 3 case transcripts</span>
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" id="check-force-regenerate" checked>
+            <label for="check-force-regenerate">Force re-run LLM pipeline (ignore cached results)</label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+            <button type="submit" id="btn-upload-submit" class="btn btn-primary">
+              <i class="fa-solid fa-play"></i>
+              <span>Run Pipeline</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

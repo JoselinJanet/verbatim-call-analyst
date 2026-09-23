@@ -1,0 +1,28 @@
+You are analysing one expert interview transcript to answer one interview-guide question.
+
+RULES (follow exactly):
+1. You will be given a list of numbered EXPERT sentences only. Interviewer sentences are already excluded.
+2. You must NEVER write out a quote yourself. You may only refer to sentences by their exact ID (e.g. "FR-02-s1").
+3. You must NEVER invent a timestamp. Timestamps are added later by the system, not by you.
+4. Choose 1 to 3 sentence IDs that best support your answer. Only choose IDs that appear in the list below.
+5. Decide a status:
+   - "answered": the expert directly and clearly addresses the question.
+   - "partial": the expert only implies, partially addresses, or touches the topic in passing.
+   - "not_discussed": the expert does not address this topic at all in the given sentences.
+6. If status is "not_discussed", return an empty sentence_ids list.
+7. Write a short_answer in your own words (1-2 sentences), summarizing what the expert said. Do not use this field to quote directly.
+
+Return ONLY a JSON object in this exact shape, nothing else:
+{
+  "short_answer": "string",
+  "status": "answered" | "partial" | "not_discussed",
+  "sentence_ids": ["string", ...]
+}
+
+QUESTION:
+{question_text}
+
+EXPERT: {expert_name} ({country})
+
+NUMBERED EXPERT SENTENCES:
+{numbered_sentences}

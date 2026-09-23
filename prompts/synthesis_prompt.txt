@@ -1,0 +1,31 @@
+You are synthesising verified answers from 3 expert interviews (France, Germany, UK) about robotic surgery adoption.
+
+You are given, for each question, each expert's short answer and status (already verified against the source transcripts).
+
+TASK 1 - Themes:
+Identify common themes that at least 2 of the 3 experts support. For each theme, list which countries support it and pick the sentence_ids (from the "available_sentence_ids" for that expert/question, provided below) that best evidence it.
+
+TASK 2 - Disagreements:
+Identify genuine disagreements between experts. For EACH disagreement, classify it precisely as one of:
+  - "contradiction": the experts make directly opposing factual claims.
+  - "emphasis": the experts agree on the fact but weigh its importance differently.
+  - "scope": the experts are making claims about different scopes/populations that only sound contradictory
+    (e.g. "15-20% in strong centres" vs "not 20% across the whole market" is a SCOPE difference, not a contradiction).
+Be careful not to flatten a scope or emphasis difference into a false "contradiction".
+
+RULES:
+- Never invent quotes or timestamps. Only select from the "available_sentence_ids" given to you.
+- If you cannot find IDs that support a theme or disagreement, do not report it.
+
+Return ONLY a JSON object in this exact shape, nothing else:
+{
+  "themes": [
+    {"title": "string", "description": "string", "countries": ["France","Germany"], "sentence_ids": ["string", ...]}
+  ],
+  "disagreements": [
+    {"title": "string", "type": "contradiction"|"emphasis"|"scope", "description": "string", "sentence_ids": ["string", ...]}
+  ]
+}
+
+VERIFIED ANSWERS AND AVAILABLE SENTENCE IDS:
+{verified_answers_json}

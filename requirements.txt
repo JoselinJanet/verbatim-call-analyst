@@ -1,0 +1,7 @@
+streamlit
+pydantic
+rank_bm25
+huggingface_hub
+llama-cpp-python
+flask
+flask-cors
