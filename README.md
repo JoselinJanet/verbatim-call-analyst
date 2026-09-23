@@ -115,7 +115,6 @@ verbatim-call-analyst/
 ├── static/
 │   ├── css/style.css
 │   └── js/app.js
-├── ui/                       # legacy Streamlit UI modules (unused)
 └── prompts/
     ├── answer_prompt.txt
     ├── synthesis_prompt.txt
