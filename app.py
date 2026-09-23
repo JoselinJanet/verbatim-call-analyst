@@ -266,7 +266,8 @@ def chat_ask():
     chat_store.add_message(conv, "user", question)
 
     state, bm25_index, lookup = get_retrieval_components()
-    result = answer_question(question, bm25_index, state.transcripts, lookup)
+    history = conv["messages"][:-1]
+    result = answer_question(question, bm25_index, state.transcripts, lookup, history=history)
 
     if result.covered and result.citations:
         citation_str = ", ".join(f"[{q.country} {q.turn_id} @ {q.timestamp}]" for q in result.citations)

@@ -126,3 +126,18 @@ def generate_json(
         })
 
     return None
+
+
+def generate_text(
+    system_prompt: str,
+    messages: list,
+    max_tokens: int = 400,
+) -> str:
+    llm = get_llm()
+    full_messages = [{"role": "system", "content": system_prompt}] + messages
+    response = llm.create_chat_completion(
+        messages=full_messages,
+        temperature=LLM_TEMPERATURE,
+        max_tokens=max_tokens,
+    )
+    return response["choices"][0]["message"]["content"].strip()

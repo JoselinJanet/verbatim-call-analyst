@@ -1,36 +1,26 @@
-"""
-Data models for the Transcript Insight app.
-
-Design principle: the LLM is only ever allowed to produce free-text
-(short answers, theme prose) and *sentence IDs*. Verbatim quote text
-and timestamps always come from these structures, populated directly
-from the parsed transcript files, never from the model.
-"""
 from __future__ import annotations
 from typing import List, Optional, Literal
 from pydantic import BaseModel, Field
 
 
 class Sentence(BaseModel):
-    """A single quotable (or context-only) sentence inside a turn."""
-    id: str                 # e.g. "FR-02-s1"
-    turn_id: str             # e.g. "FR-02"
-    text: str                # verbatim sentence text
-    is_expert: bool           # False for interviewer sentences (not quotable)
+    id: str
+    turn_id: str
+    text: str
+    is_expert: bool
 
 
 class Turn(BaseModel):
-    """One speaker turn in a transcript, tagged with metadata."""
-    id: str                  # e.g. "FR-02"
-    call: str                 # transcript filename / call label
-    country: str               # "France", "Germany", "United Kingdom"
-    country_code: str           # "FR", "DE", "UK"
+    id: str
+    call: str
+    country: str
+    country_code: str
     expert_name: str
     expert_role: str
-    timestamp: str                # "00:18"
-    speaker: str                    # "Dr. Martin" or "Interviewer"
-    text: str                        # full turn text (verbatim)
-    is_expert: bool                   # False for interviewer turns
+    timestamp: str
+    speaker: str
+    text: str
+    is_expert: bool
     sentences: List[Sentence] = Field(default_factory=list)
 
 
@@ -58,7 +48,6 @@ class Quote(BaseModel):
 
 
 class AnswerCell(BaseModel):
-    """One cell in the Guide Answers grid: (question, expert)."""
     question_number: int
     country: str
     expert_name: str
@@ -95,7 +84,6 @@ class AskAnswer(BaseModel):
 
 
 class AppState(BaseModel):
-    """Everything persisted to cache.json between runs."""
     transcripts: List[Transcript] = Field(default_factory=list)
     guide_questions: List[GuideQuestion] = Field(default_factory=list)
     answer_grid: List[AnswerCell] = Field(default_factory=list)

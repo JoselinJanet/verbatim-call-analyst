@@ -61,7 +61,7 @@ def generate_answer_cell(
     short_answer = str(result.get("short_answer", "")).strip()
     status = result.get("status", "not_discussed")
     if status not in STATUS_VALUES:
-        status = "partial"  # safe fallback rather than trusting an invalid label
+        status = "partial"
     raw_sentence_ids = result.get("sentence_ids", []) or []
 
     verified_quotes, rejected_ids = verify_sentence_ids(raw_sentence_ids, lookup)
@@ -75,7 +75,7 @@ def generate_answer_cell(
         expert_name=transcript.expert_name,
         short_answer=short_answer or "(No answer text returned)",
         status=status,
-        quotes=verified_quotes[:3],  # cap at 3 as designed
+        quotes=verified_quotes[:3],
         generation_failed=False,
     )
 

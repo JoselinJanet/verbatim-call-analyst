@@ -1,13 +1,3 @@
-"""
-Persists chat conversations for the single app user across sessions and
-restarts. Conversations are stored as a list of independent threads, each
-with its own id, auto-generated title, and message list - this is what
-makes "New Chat" possible (start a fresh thread) without losing earlier
-ones, and what makes history survive closing/reopening the app.
-
-Storage is a single JSON file (see config.CHAT_HISTORY_FILE), consistent
-with the rest of the app's "no database needed at this scale" approach.
-"""
 import json
 import uuid
 from datetime import datetime
@@ -28,7 +18,7 @@ def load_conversations() -> List[Dict]:
     try:
         return json.loads(CHAT_HISTORY_FILE.read_text(encoding="utf-8"))
     except Exception:
-        return []  # corrupt file -> start fresh rather than crash the app
+        return []
 
 
 def save_conversations(conversations: List[Dict]) -> None:
@@ -41,7 +31,7 @@ def new_conversation() -> Dict:
         "id": uuid.uuid4().hex[:8],
         "title": "New chat",
         "created_at": _now_iso(),
-        "messages": [],  # each: {"role": "user"|"assistant", "content": str}
+        "messages": [],
     }
 
 
@@ -50,10 +40,6 @@ def find_conversation(conversations: List[Dict], conv_id: str) -> Optional[Dict]
 
 
 def add_message(conv: Dict, role: str, content: str) -> None:
-    """
-    Appends a message to a conversation in place, and auto-titles the
-    conversation from the first user message if it's still "New chat".
-    """
     conv["messages"].append({"role": role, "content": content})
     if role == "user" and conv["title"] == "New chat":
         title = content.strip().replace("\n", " ")
