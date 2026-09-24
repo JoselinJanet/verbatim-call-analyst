@@ -3,7 +3,7 @@
 
 **Document Type:** Pre-Development Scope & Architecture Definition
 **Status:** Approved — Development Complete
-**Prepared by:** [Your Name]
+**Prepared by:** Joselin Janet J
 **Submission:** Case Study — AI-Powered Research Tool
 
 ---
